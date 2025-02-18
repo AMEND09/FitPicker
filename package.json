@@ -54,6 +54,7 @@
     "path": "^0.12.7",
     "plotly.js-dist-min": "^3.0.0",
     "react": "^18.3.1",
+    "react-colorful": "^5.6.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.52.1",
