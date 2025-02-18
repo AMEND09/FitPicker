@@ -12,7 +12,9 @@ export default defineConfig({
         react(),
         VitePWA({
             registerType: 'autoUpdate',
-            includeAssets: ['img.png'],
+            devOptions: {
+                enabled: true
+            },
             manifest: {
                 name: 'FitPicker',
                 short_name: 'FitPicker',
@@ -26,10 +28,16 @@ export default defineConfig({
                         purpose: 'any maskable'
                     }
                 ],
-                display: 'standalone',
-                scope: '.',
+                id: '/',
                 start_url: '/',
-                background_color: '#ffffff'
+                display: 'standalone',
+                background_color: '#ffffff',
+                scope: '/'
+            },
+            workbox: {
+                globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+                cleanupOutdatedCaches: true,
+                sourcemap: true
             }
         })
     ],
