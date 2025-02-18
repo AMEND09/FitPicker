@@ -1,12 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';  // Remove file extension
+import App from './App';
 import './index.css';
 
 // Register service worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
+    navigator.serviceWorker.register('/sw.js', { type: 'module' })
       .then(registration => {
         console.log('SW registered:', registration);
       })
