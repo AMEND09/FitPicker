@@ -375,14 +375,22 @@ const WeatherWardrobe = () => {
     return () => clearTimeout(saveTimeout);
   }, [clothes, outfitHistory, colorPreferences, outfitFeedback, stylePreferences]);
 
-  const getClothingIcon = (type: string) => {
+  const getClothingIcon = (type: ClothingCategory) => {
     switch(type) {
-      case 'top': return <Shirt className="h-5 w-5" />;
-      case 'bottom': return <Icon iconNode={trousers} className="h-5 w-5" />; // Changed from icon to iconNode
-      case 'outerwear': return <Wind className="h-5 w-5" />;
-      case 'shoes': return <Footprints className="h-5 w-5" />;
-      case 'accessories': return <Watch className="h-5 w-5" />;
-      default: return null;
+      case 'tops':
+        return <Shirt className="h-5 w-5" />;
+      case 'bottoms':
+        return <Icon iconNode={trousers} className="h-5 w-5" />;
+      case 'footwear':
+        return <Footprints className="h-5 w-5" />;
+      case 'accessories':
+        return <Watch className="h-5 w-5" />;
+      case 'one-piece':
+        return <Shirt className="h-5 w-5" />; // You may want a different icon for dresses/rompers
+      case 'undergarments':
+        return <Shirt className="h-5 w-5" />; // You may want a different icon for underwear
+      default:
+        return null;
     }
   };
 
@@ -1096,39 +1104,7 @@ const WeatherWardrobe = () => {
     return (
       <>
         {suggestions.map(item => (
-          <Card key={item.id}>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                {getClothingIcon(item.type)}
-                <h3 className="font-bold">{item.name}</h3>
-              </div>
-            </CardHeader>
-            {item.imageUrl && (
-              <CardContent>
-                <img
-                  src={item.imageUrl}
-                  alt={item.name}
-                  className="w-full h-48 object-cover rounded"
-                />
-              </CardContent>
-            )}
-            <CardFooter className="flex justify-between">
-              <div className="flex items-center gap-2">
-                <p className="text-sm capitalize">{item.type}</p>
-                <div 
-                  className="w-4 h-4 rounded-full" 
-                  style={{ backgroundColor: item.color }}
-                />
-              </div>
-              <div className="flex gap-1">
-                {item.weatherTags.map(tag => (
-                  <span key={tag} className="text-xs bg-slate-100 px-2 py-1 rounded">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </CardFooter>
-          </Card>
+          <SuggestionsItem key={item.id} item={item} />
         ))}
         <div className="col-span-full flex flex-col items-center gap-4 mt-4">
           {!showFeedbackOptions ? (
@@ -1582,6 +1558,122 @@ const StyleSelect = ({ value, onChange, type, subCategory }: {
   );
 };
 
+const categoryToType = (category: ClothingCategory): string => {
+  switch(category) {
+    case 'tops':
+      return 'top';
+    case 'bottoms':
+      return 'bottom';
+    case 'footwear':
+      return 'shoes';
+    case 'accessories':
+      return 'accessories';
+    case 'one-piece':
+      return 'one-piece';
+    case 'undergarments':
+      return 'undergarments';
+    default:
+      return 'top';
+  }
+};
+
+const WardrobeItem = ({ item }: { item: ClothingItem }) => (
+  <Card key={item.id}>
+    <CardHeader>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {getClothingIcon(item.category)}
+          <h3 className="font-bold">{item.name}</h3>
+        </div>
+        <div className="flex gap-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => startEditing(item)}
+          >
+            Edit
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            className="text-red-500 hover:text-red-700"
+            onClick={() => deleteClothingItem(item)}
+          >
+            Delete
+          </Button>
+        </div>
+      </div>
+    </CardHeader>
+    {item.imageUrl && (
+      <CardContent>
+        <img
+          src={item.imageUrl}
+          alt={item.name}
+          className="w-full h-40 object-cover rounded"
+        />
+      </CardContent>
+    )}
+    <CardFooter className="flex justify-between">
+      <div className="flex items-center gap-2">
+        <p className="text-sm capitalize">{categoryToType(item.category)}</p>
+        {item.color && (
+          <div 
+            className="w-4 h-4 rounded-full border border-gray-200" 
+            style={{ backgroundColor: colorPalette[item.color as keyof typeof colorPalette] || item.color }}
+            title={item.color}
+          />
+        )}
+      </div>
+      <div className="flex gap-1">
+        {item.weatherTags.map(tag => (
+          <span key={tag} className="text-xs bg-slate-100 px-2 py-1 rounded">
+            {tag}
+          </span>
+        ))}
+      </div>
+    </CardFooter>
+  </Card>
+);
+
+const SuggestionsItem = ({ item }: { item: ClothingItem }) => (
+  <Card key={item.id}>
+    <CardHeader>
+      <div className="flex items-center gap-2">
+        {getClothingIcon(item.category)}
+        <h3 className="font-bold">{item.name}</h3>
+      </div>
+    </CardHeader>
+    {item.imageUrl && (
+      <CardContent>
+        <img
+          src={item.imageUrl}
+          alt={item.name}
+          className="w-full h-48 object-cover rounded"
+        />
+      </CardContent>
+    )}
+    <CardFooter className="flex justify-between">
+      <div className="flex items-center gap-2">
+        <p className="text-sm capitalize">{categoryToType(item.category)}</p>
+        {item.color && (
+          <div 
+            className="w-4 h-4 rounded-full border border-gray-200" 
+            style={{ backgroundColor: colorPalette[item.color as keyof typeof colorPalette] || item.color }}
+            title={item.color}
+          />
+        )}
+      </div>
+      <div className="flex gap-1">
+        {item.weatherTags.map(tag => (
+          <span key={tag} className="text-xs bg-slate-100 px-2 py-1 rounded">
+            {tag}
+          </span>
+        ))}
+      </div>
+    </CardFooter>
+  </Card>
+);
+
   return (
     <div className="p-4 max-w-4xl mx-auto">
       <div className="mb-8">
@@ -1802,58 +1894,7 @@ const StyleSelect = ({ value, onChange, type, subCategory }: {
               </div>
             ) : (
               filteredClothes.map(item => (
-                <Card key={item.id}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {getClothingIcon(item.type)}
-                        <h3 className="font-bold">{item.name}</h3>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => startEditing(item)}
-                        >
-                          Edit
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          className="text-red-500 hover:text-red-700"
-                          onClick={() => deleteClothingItem(item)}
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  {item.imageUrl && (
-                    <CardContent>
-                      <img
-                        src={item.imageUrl}
-                        alt={item.name}
-                        className="w-full h-40 object-cover rounded"
-                      />
-                    </CardContent>
-                  )}
-                  <CardFooter className="flex justify-between">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm capitalize">{item.type}</p>
-                      <div 
-                        className="w-4 h-4 rounded-full" 
-                        style={{ backgroundColor: item.color }}
-                      />
-                    </div>
-                    <div className="flex gap-1">
-                      {item.weatherTags.map(tag => (
-                        <span key={tag} className="text-xs bg-slate-100 px-2 py-1 rounded">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </CardFooter>
-                </Card>
+                <WardrobeItem key={item.id} item={item} />
               ))
             )}
           </div>
