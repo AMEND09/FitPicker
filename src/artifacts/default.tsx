@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,88 +9,9 @@ import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFoo
 import { Icon } from 'lucide-react';
 import { trousers } from '@lucide/lab';
 
-type ClothingCategory =
-  | 'tops'
-  | 'bottoms'
-  | 'one-piece'
-  | 'undergarments'
-  | 'footwear'
-  | 'accessories';
-
-// Create subcategory type mapping
-type SubcategoryMapping = {
-  tops: Record<'tshirts' | 'collared' | 'sweaters' | 'outerwear', StyleTag[]>;
-  bottoms: Record<'casual' | 'formal' | 'athletic' | 'denim' | 'specialty' | 'shorts', StyleTag[]>;
-  'one-piece': Record<'dresses' | 'rompers' | 'overalls', StyleTag[]>;
-  undergarments: Record<'mens-underwear' | 'womens-underwear' | 'sleepwear' | 'shapewear', StyleTag[]>;
-  footwear: Record<'sneakers' | 'dress' | 'boots' | 'sandals' | 'slippers', StyleTag[]>;
-  accessories: Record<'neckwear' | 'headwear' | 'handwear' | 'belts' | 'eyewear', StyleTag[]>;
-};
-
-// Update ClothingSubCategory type to use SubcategoryMapping
-type ClothingSubCategory = {
-  [K in keyof SubcategoryMapping]: keyof SubcategoryMapping[K];
-};
-
-// Update StyleTag to be a proper union type
-type StyleTag = 
-  // T-Shirts
-  | 'crew-neck' | 'v-neck' | 'henley' | 'graphic-tee' | 'pocket-tee' | 'muscle-tee' | 'long-sleeve-tee'
-  // Collared Shirts
-  | 'polo' | 'dress-shirt' | 'oxford' | 'button-down' | 'hawaiian' | 'cuban-collar' | 'flannel' | 'chambray' | 'linen'
-  // Sweaters & Sweatshirts
-  | 'pullover' | 'cardigan' | 'crewneck' | 'hoodie' | 'turtleneck' | 'quarter-zip'
-  // Jackets & Outerwear
-  | 'denim-jacket' | 'leather-jacket' | 'bomber' | 'trench-coat' | 'pea-coat' | 'parka' | 'windbreaker' | 'puffer' | 'blazer' | 'overcoat'
-  // Casual Pants
-  | 'cargo' | 'chinos' | 'joggers' | 'khakis' | 'corduroy'
-  // Allow other strings for future additions
-  | string;
-
-// Update clothingCategories with all required properties
-const clothingCategories: {
-  [K in ClothingCategory]: SubcategoryMapping[K];
-} = {
-  tops: {
-    tshirts: ['crew-neck', 'v-neck', 'henley', 'graphic-tee', 'pocket-tee', 'muscle-tee', 'long-sleeve-tee'],
-    collared: ['polo', 'dress-shirt', 'oxford', 'button-down', 'hawaiian', 'cuban-collar', 'flannel', 'chambray', 'linen'],
-    sweaters: ['pullover', 'cardigan', 'crewneck', 'hoodie', 'turtleneck', 'quarter-zip'],
-    outerwear: ['denim-jacket', 'leather-jacket', 'bomber', 'trench-coat', 'pea-coat', 'parka', 'windbreaker', 'puffer', 'blazer', 'overcoat']
-  },
-  bottoms: {
-    casual: ['cargo', 'chinos', 'joggers', 'khakis', 'corduroy'],
-    formal: ['dress-pants', 'suit-trousers', 'slacks', 'wool-trousers'],
-    athletic: ['track-pants', 'yoga-pants', 'sweatpants', 'leggings', 'compression-tights'],
-    denim: ['straight-leg-jeans', 'skinny-jeans', 'bootcut-jeans', 'slim-fit-jeans', 'wide-leg-jeans'],
-    specialty: ['golf-pants', 'snow-pants', 'overalls', 'motorcycle-pants'],
-    shorts: ['cargo-shorts', 'chino-shorts', 'bermuda-shorts', 'board-shorts', 'running-shorts', 'biker-shorts', 'denim-shorts']
-  },
-  'one-piece': {
-    dresses: ['maxi-dress', 'midi-dress', 'mini-dress', 'wrap-dress', 'shirt-dress'],
-    rompers: ['casual-romper', 'dressy-romper'],
-    overalls: ['denim-overalls', 'work-overalls']
-  },
-  undergarments: {
-    'mens-underwear': ['boxers', 'briefs', 'boxer-briefs'],
-    'womens-underwear': ['bikini', 'hipster', 'boyshort'],
-    sleepwear: ['pajamas', 'nightgown', 'robe'],
-    shapewear: ['camisole', 'slip', 'thermal']
-  },
-  footwear: {
-    sneakers: ['athletic', 'casual', 'high-top'],
-    dress: ['oxford', 'loafer', 'pump'],
-    boots: ['chelsea', 'combat', 'hiking'],
-    sandals: ['flip-flop', 'slide', 'sport'],
-    slippers: ['moccasin', 'scuff', 'boot']
-  },
-  accessories: {
-    neckwear: ['tie', 'bow-tie', 'scarf'],
-    headwear: ['baseball-cap', 'beanie', 'fedora'],
-    handwear: ['gloves', 'mittens'],
-    belts: ['leather', 'canvas', 'elastic'],
-    eyewear: ['sunglasses', 'reading']
-  }
-} as const;
+type StyleTag = 'hoodie' | 'quarterzip' | 'cargo' | 'denim' | 'flannel' | 'tshirt' | 
+                'polo' | 'dress-shirt' | 'sweater' | 'blazer' | 'chino' | 'shorts' | 
+                'sneakers' | 'boots' | 'dress-shoes' | 'sandals';
 
 interface ClothingItem {
   id: number;
@@ -100,8 +21,6 @@ interface ClothingItem {
   color: string;
   weatherTags: ('hot' | 'mild' | 'cold' | 'rainy')[];
   styleTag: StyleTag;
-  category: ClothingCategory;
-  subCategory: ClothingSubCategory[ClothingCategory];
 }
 
 interface WeatherResponse {
@@ -142,137 +61,36 @@ interface StylePreference {
 
 type WeatherTag = 'hot' | 'mild' | 'cold' | 'rainy';
 
-// Updated color definitions
-const colorPalette = {
-  black: '#000000',
-  'dark-gray': '#444444',
-  gray: '#808080',
-  'light-gray': '#CCCCCC',
-  white: '#FFFFFF',
-  'dark-navy': '#000080',
-  navy: '#0000FF',
-  'light-navy': '#4040FF',
-  'dark-red': '#800000',
-  red: '#FF0000',
-  'light-red': '#FF4040',
-  'dark-blue': '#000080',
-  blue: '#0000FF',
-  'light-blue': '#4040FF',
-  'dark-green': '#008000',
-  green: '#00FF00',
-  'light-green': '#40FF40',
-  'dark-beige': '#C4A484',
-  beige: '#F5F5DC',
-  'light-beige': '#FFFFE0',
-  'dark-brown': '#654321',
-  brown: '#964B00',
-  'light-brown': '#B87333',
-} as const;
-
-// Color combination rules updated to include new colors
+// Color combination rules
 const colorCombos: { [key: string]: string[] } = {
-  black: ['white', 'gray', 'light-gray', 'red', 'light-red', 'blue', 'light-blue', 'green', 'light-green', 'beige', 'light-beige', 'navy', 'light-navy'],
-  'dark-gray': ['white', 'light-gray', 'light-red', 'light-blue', 'light-green', 'light-beige', 'light-navy'],
-  gray: ['black', 'white', 'navy', 'blue', 'red'],
-  'light-gray': ['black', 'dark-gray', 'dark-navy', 'dark-blue', 'dark-red'],
-  white: ['black', 'dark-gray', 'navy', 'dark-navy', 'red', 'dark-red', 'blue', 'dark-blue', 'gray'],
-  'dark-navy': ['white', 'light-gray', 'light-beige', 'light-red'],
+  black: ['white', 'gray', 'red', 'blue', 'green', 'beige', 'navy'],
+  white: ['black', 'navy', 'red', 'blue', 'gray', 'beige'],
   navy: ['white', 'gray', 'beige', 'red'],
-  'light-navy': ['black', 'dark-gray', 'dark-beige'],
-  'dark-beige': ['black', 'dark-navy', 'dark-brown', 'white'],
+  gray: ['black', 'white', 'navy', 'blue', 'red'],
   beige: ['black', 'navy', 'brown', 'white'],
-  'light-beige': ['dark-navy', 'dark-brown', 'dark-gray'],
-  'dark-brown': ['light-beige', 'white', 'light-blue'],
   brown: ['beige', 'white', 'blue'],
-  'light-brown': ['dark-blue', 'dark-gray', 'black'],
-  // ... add similar patterns for other colors
-};
-
-// Helper function to find closest color
-const findClosestColor = (hex: string): keyof typeof colorPalette => {
-  let closestColor = Object.entries(colorPalette)[0][0] as keyof typeof colorPalette;
-  let closestDistance = Number.MAX_VALUE;
-
-  // Convert hex to RGB
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-
-  Object.entries(colorPalette).forEach(([colorName, colorHex]) => {
-    const r2 = parseInt(colorHex.slice(1, 3), 16);
-    const g2 = parseInt(colorHex.slice(3, 5), 16);
-    const b2 = parseInt(colorHex.slice(5, 7), 16);
-
-    // Calculate color distance using simple Euclidean distance
-    const distance = Math.sqrt(
-      Math.pow(r - r2, 2) + 
-      Math.pow(g - g2, 2) + 
-      Math.pow(b - b2, 2)
-    );
-
-    if (distance < closestDistance) {
-      closestDistance = distance;
-      closestColor = colorName as keyof typeof colorPalette;
-    }
-  });
-
-  return closestColor;
+  blue: ['gray', 'white', 'black', 'brown'],
+  red: ['black', 'white', 'gray', 'navy'],
+  green: ['black', 'white', 'beige'],
 };
 
 const availableColors = Object.keys(colorCombos);
 
-const clothingTypeStyles: Record<string, StyleTag[]> = {
-  top: ['tshirt', 'polo', 'dress-shirt', 'sweater'],
-  bottom: ['cargo', 'denim', 'chino', 'shorts'],
-  outerwear: ['hoodie', 'quarterzip', 'blazer'],
-  shoes: ['sneakers', 'boots', 'dress-shoes', 'sandals'],
-  accessories: [] // No specific styles for accessories
-};
-
-// Create a type for the subcategory values
-type SubcategoryValue<T extends ClothingCategory> = ClothingSubCategory[T];
-
-// Helper function to safely get styles for a category/subcategory combination
-function getCategoryStyles<T extends ClothingCategory>(
-  category: T,
-  subcategory: ClothingSubCategory[T]
-): StyleTag[] {
-  // Type assertion to help TypeScript understand the structure
-  return (clothingCategories[category] as Record<ClothingSubCategory[T], StyleTag[]>)[subcategory];
-}
-
-// Update the NewClothingItem type to not have a default generic parameter
-type NewClothingItem<T extends ClothingCategory> = {
-  name: string;
-  type: 'top';
-  imageUrl: string;
-  color: string;
-  weatherTags: WeatherTag[];
-  styleTag: StyleTag;
-  category: T;
-  subCategory: ClothingSubCategory[T];
-}
-
 const WeatherWardrobe = () => {
-  // Move the newItem state inside the component
-  const [newItem, setNewItem] = useState<NewClothingItem<ClothingCategory>>({
-    name: '',
-    type: 'top',
-    imageUrl: '',
-    color: 'black',
-    weatherTags: [],
-    styleTag: 'tshirt',
-    category: 'tops',
-    subCategory: 'tshirts'
-  });
-
-  // Rest of the component state declarations
   const [clothes, setClothes] = useState<ClothingItem[]>([]);
   const [weather, setWeather] = useState<{temp: number, condition: string}>({ 
     temp: 68, // Changed from 20 to a more reasonable default
     condition: 'clear' 
   });
   const [loading, setLoading] = useState(true);
+  const [newItem, setNewItem] = useState({
+    name: '',
+    type: 'top' as const,
+    imageUrl: '', // Remove default placeholder
+    color: 'black',
+    weatherTags: [] as WeatherTag[],
+    styleTag: 'tshirt' as StyleTag,
+  });
   const [location, setLocation] = useState<LocationResponse | null>(null);
   const [outfitHistory, setOutfitHistory] = useState<OutfitHistory[]>(() => {
     const saved = localStorage.getItem('wardrobe-history');
@@ -318,12 +136,6 @@ const WeatherWardrobe = () => {
   });
 
   const [itemToDelete, setItemToDelete] = useState<ClothingItem | null>(null);
-
-  // Remove the state for search
-  const [wardrobeSearch, setWardrobeSearch] = useState('');
-
-  // Define inputRef
-  const inputRef = useRef<HTMLInputElement>(null);
 
   // Save outfit history to localStorage
   useEffect(() => {
@@ -389,29 +201,49 @@ const WeatherWardrobe = () => {
         try {
           const position = await new Promise<GeolocationPosition>((resolve, reject) => {
             navigator.geolocation.getCurrentPosition(resolve, reject, {
-              enableHighAccuracy: false, // Change to false to speed up response
-              timeout: 10000, // Increase timeout to 10 seconds
-              maximumAge: 300000 // Allow cached positions up to 5 minutes old
+              enableHighAccuracy: false,
+              timeout: 10000,
+              maximumAge: 300000
             });
           });
 
           setLocation({
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
-            city: 'Your Location' // We'll use generic name since reverse geocoding requires additional API
+            city: 'Your Location'
           });
           return;
         } catch (error) {
-          console.log('Using fallback location');
+          console.log('Geolocation failed, falling back to IP lookup');
         }
       }
 
-      // Simplified fallback
-      setLocation({
-        latitude: 40.71,
-        longitude: -74.01,
-        city: 'New York (Default)'
-      });
+      // Fallback to IP-based location using ip-api.com
+      try {
+        const response = await fetch('http://ip-api.com/json/?fields=lat,lon,city,status');
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+          setLocation({
+            latitude: data.lat,
+            longitude: data.lon,
+            city: data.city || 'Unknown Location'
+          });
+          return;
+        }
+        throw new Error('IP lookup failed');
+      } catch (error) {
+        console.error('IP location lookup failed:', error);
+        // Final fallback based on season
+        const month = new Date().getMonth();
+        const defaultLocation = month >= 5 && month <= 8
+          ? { latitude: 25.7617, longitude: -80.1918, city: 'Miami (Default)' }  // Summer
+          : month >= 11 || month <= 1
+          ? { latitude: 39.7392, longitude: -104.9903, city: 'Denver (Default)' }  // Winter
+          : { latitude: 40.7128, longitude: -74.0060, city: 'New York (Default)' };  // Spring/Fall
+
+        setLocation(defaultLocation);
+      }
     };
 
     fetchLocation();
@@ -520,9 +352,7 @@ const WeatherWardrobe = () => {
       imageUrl: newItem.imageUrl,
       color: newItem.color,
       weatherTags: newItem.weatherTags,
-      styleTag: newItem.styleTag,
-      category: newItem.category,
-      subCategory: newItem.subCategory
+      styleTag: newItem.styleTag
     }]);
 
     setNewItem({
@@ -531,9 +361,7 @@ const WeatherWardrobe = () => {
       imageUrl: '',
       color: 'black',
       weatherTags: [],
-      styleTag: 'tshirt',
-      category: 'tops',
-      subCategory: 'tshirts'
+      styleTag: 'tshirt'
     });
   }, [newItem]);
 
@@ -1099,62 +927,105 @@ const WeatherWardrobe = () => {
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Color</p>
-            <ColorPicker
-              value={editForm.color}
-              onChange={(value) => setEditForm({...editForm, color: value})}
-            />
-          </div>
-          <Select
-            value={editForm.category}
-            onValueChange={(value) => setEditForm({
-              ...editForm,
-              category: value as ClothingCategory,
-              subCategory: Object.keys(clothingCategories[value as ClothingCategory])[0] as any
-            })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select category" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.keys(clothingCategories).map(category => (
-                <SelectItem key={category} value={category}>
-                  {category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {editForm.category && (
             <Select
-              value={editForm.subCategory}
-              onValueChange={(value) => setEditForm({
-                ...editForm,
-                subCategory: value as any,
-                styleTag: getCategoryStyles(editForm.category, value as any)[0]
-              })}
+              value={editForm.color}
+              onValueChange={(value) => setEditForm({...editForm, color: value})}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select subcategory" />
+                <SelectValue placeholder="Select color" />
               </SelectTrigger>
               <SelectContent>
-                {Object.keys(clothingCategories[editForm.category]).map(subCategory => (
-                  <SelectItem key={subCategory} value={subCategory}>
-                    {subCategory.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                {availableColors.map(color => (
+                  <SelectItem key={color} value={color}>
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-4 h-4 rounded-full" 
+                        style={{ backgroundColor: color }}
+                      />
+                      <span className="capitalize">{color}</span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-          )}
-          {editForm.subCategory && (
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Style</p>
-              <StyleSelect
-                value={editForm.styleTag}
-                onChange={(value) => setEditForm({...editForm, styleTag: value as StyleTag})}
-                type={editForm.category}
-                subCategory={editForm.subCategory}
-              />
+          </div>
+          <Select
+            value={editForm.type}
+            onValueChange={(value) => setEditForm({...editForm, type: value as any})}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="top">Top</SelectItem>
+              <SelectItem value="bottom">Bottom</SelectItem>
+              <SelectItem value="outerwear">Outerwear</SelectItem>
+              <SelectItem value="shoes">Shoes</SelectItem>
+              <SelectItem value="accessories">Accessories</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <p className="text-sm font-medium">Weather Tags</p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const allTags = editForm.weatherTags.length === weatherTags.length 
+                    ? []
+                    : [...weatherTags];
+                  setEditForm({...editForm, weatherTags: allTags});
+                }}
+              >
+                {editForm.weatherTags.length === weatherTags.length ? 'Clear All' : 'All Weather'}
+              </Button>
             </div>
-          )}
+            <div className="flex gap-2">
+              {weatherTags.map((tag) => (
+                <Button
+                  key={tag}
+                  variant={editForm.weatherTags.includes(tag) ? "default" : "outline"}
+                  onClick={() => {
+                    const tags = editForm.weatherTags.includes(tag)
+                      ? editForm.weatherTags.filter(t => t !== tag)
+                      : [...editForm.weatherTags, tag] as WeatherTag[];
+                    setEditForm({...editForm, weatherTags: tags});
+                  }}
+                >
+                  {tag}
+                </Button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Style</p>
+            <Select
+              value={editForm.styleTag}
+              onValueChange={(value) => setEditForm({...editForm, styleTag: value as StyleTag})}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select style" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="hoodie">Hoodie</SelectItem>
+                <SelectItem value="quarterzip">Quarter Zip</SelectItem>
+                <SelectItem value="cargo">Cargo Pants</SelectItem>
+                <SelectItem value="denim">Denim</SelectItem>
+                <SelectItem value="flannel">Flannel</SelectItem>
+                <SelectItem value="tshirt">T-Shirt</SelectItem>
+                <SelectItem value="polo">Polo</SelectItem>
+                <SelectItem value="dress-shirt">Dress Shirt</SelectItem>
+                <SelectItem value="sweater">Sweater</SelectItem>
+                <SelectItem value="blazer">Blazer</SelectItem>
+                <SelectItem value="chino">Chinos</SelectItem>
+                <SelectItem value="shorts">Shorts</SelectItem>
+                <SelectItem value="sneakers">Sneakers</SelectItem>
+                <SelectItem value="boots">Boots</SelectItem>
+                <SelectItem value="dress-shoes">Dress Shoes</SelectItem>
+                <SelectItem value="sandals">Sandals</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={cancelEditing}>Cancel</Button>
             <Button onClick={() => updateClothingItem(editForm)}>Save Changes</Button>
@@ -1172,171 +1043,6 @@ const WeatherWardrobe = () => {
       updateHistory(suggestions);
     }
   }, [suggestions, updateHistory]);
-
-  // Filter clothes based on search
-  const filteredClothes = clothes.filter(item =>
-    item.name.toLowerCase().includes(wardrobeSearch.toLowerCase()) ||
-    item.type.toLowerCase().includes(wardrobeSearch.toLowerCase()) ||
-    item.color.toLowerCase().includes(wardrobeSearch.toLowerCase())
-  );
-
-  // Define all style options
-  const allStyles: StyleTag[] = [
-    'hoodie', 'quarterzip', 'cargo', 'denim', 'flannel', 'tshirt',
-    'polo', 'dress-shirt', 'sweater', 'blazer', 'chino', 'shorts',
-    'sneakers', 'boots', 'dress-shoes', 'sandals'
-  ];
-
-  // Update the Select components to remove search
-  const ColorPicker = ({ value, onChange }: { value: string, onChange: (value: string) => void }) => {
-    const [sliderValue, setSliderValue] = useState(0);
-    const [showSwatches, setShowSwatches] = useState(false);
-    const [isDragging, setIsDragging] = useState(false);
-  
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const hue = parseInt(e.target.value);
-      setSliderValue(hue);
-      const hex = `hsl(${hue}, 100%, 50%)`;
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.fillStyle = hex;
-        ctx.fillRect(0, 0, 1, 1);
-        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
-        const hexColor = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-        const closestNamedColor = findClosestColor(hexColor);
-        onChange(closestNamedColor);
-      }
-    };
-  
-    return (
-      <div className="space-y-2">
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1">
-            <input
-              type="range"
-              min="0"
-              max="360"
-              value={sliderValue}
-              className="w-full h-8 rounded-lg appearance-none cursor-pointer 
-                [&::-webkit-slider-thumb]:appearance-none 
-                [&::-webkit-slider-thumb]:w-4 
-                [&::-webkit-slider-thumb]:h-4 
-                [&::-webkit-slider-thumb]:rounded-full 
-                [&::-webkit-slider-thumb]:bg-white 
-                [&::-webkit-slider-thumb]:border 
-                [&::-webkit-slider-thumb]:border-gray-300 
-                [&::-webkit-slider-thumb]:cursor-pointer 
-                [&::-webkit-slider-thumb]:opacity-0
-                [&::-webkit-slider-thumb]:hover:opacity-100
-                [&:active::-webkit-slider-thumb]:opacity-100
-                [&::-moz-range-thumb]:appearance-none 
-                [&::-moz-range-thumb]:w-4 
-                [&::-moz-range-thumb]:h-4 
-                [&::-moz-range-thumb]:rounded-full 
-                [&::-moz-range-thumb]:bg-white 
-                [&::-moz-range-thumb]:border 
-                [&::-moz-range-thumb]:border-gray-300 
-                [&::-moz-range-thumb]:cursor-pointer
-                [&::-moz-range-thumb]:opacity-0
-                [&::-moz-range-thumb]:hover:opacity-100
-                [&:active::-moz-range-thumb]:opacity-100"
-              style={{
-                background: `linear-gradient(to right, 
-                  hsl(0, 100%, 50%),
-                  hsl(60, 100%, 50%),
-                  hsl(120, 100%, 50%),
-                  hsl(180, 100%, 50%),
-                  hsl(240, 100%, 50%),
-                  hsl(300, 100%, 50%),
-                  hsl(360, 100%, 50%)
-                )`,
-              }}
-              onChange={handleChange}
-              onMouseDown={() => setIsDragging(true)}
-              onMouseUp={() => setIsDragging(false)}
-              onMouseLeave={() => setIsDragging(false)}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <div 
-              className="w-8 h-8 rounded-full border border-gray-200" 
-              style={{ backgroundColor: colorPalette[value as keyof typeof colorPalette] }} 
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowSwatches(!showSwatches)}
-            >
-              {showSwatches ? "Hide" : "More Colors"}
-            </Button>
-          </div>
-        </div>
-        
-        {showSwatches && (
-          <div className="p-2 mt-2 border rounded-lg bg-white shadow-lg">
-            <div className="grid grid-cols-6 gap-2 max-h-[200px] overflow-y-auto">
-              {Object.entries(colorPalette).map(([colorName, hexValue]) => (
-                <button
-                  key={colorName}
-                  className={`p-1 rounded-lg border ${value === colorName ? 'border-blue-500' : 'border-gray-200'}`}
-                  onClick={() => {
-                    onChange(colorName);
-                    setShowSwatches(false);
-                  }}
-                >
-                  <div className="flex flex-col items-center gap-1">
-                    <div 
-                      className="w-6 h-6 rounded-full border border-gray-200" 
-                      style={{ backgroundColor: hexValue }} 
-                    />
-                    <span className="text-xs truncate w-full text-center">
-                      {colorName.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                    </span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // Add StyleSelect component definition
-  const StyleSelect = ({ 
-    value, 
-    onChange, 
-    type, 
-    subCategory 
-  }: { 
-    value: StyleTag;
-    onChange: (value: StyleTag) => void;
-    type: ClothingCategory;
-    subCategory: ClothingSubCategory[typeof type];
-  }) => {
-    const availableStyles = getCategoryStyles(type, subCategory);
-
-    return (
-      <Select 
-        value={value}
-        onValueChange={(newValue: string) => onChange(newValue as StyleTag)}
-      >
-        <SelectTrigger>
-          <SelectValue placeholder="Select style" />
-        </SelectTrigger>
-        <SelectContent>
-          <div className="max-h-[200px] overflow-y-auto">
-            {availableStyles.map((style) => (
-              <SelectItem key={style} value={style}>
-                {style.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-              </SelectItem>
-            ))}
-          </div>
-        </SelectContent>
-      </Select>
-    );
-  };
 
   return (
     <div className="p-4 max-w-4xl mx-auto">
@@ -1407,74 +1113,106 @@ const WeatherWardrobe = () => {
               </div>
               <div className="space-y-2">
                 <p className="text-sm font-medium">Color</p>
-                <ColorPicker
-                  value={newItem.color}
-                  onChange={(value) => setNewItem({...newItem, color: value})}
-                />
-              </div>
-              <Select
-                value={newItem.category}
-                onValueChange={(value: ClothingCategory) => {
-                  const category = value;
-                  const subcategories = Object.keys(clothingCategories[category]) as Array<ClothingSubCategory[typeof category]>;
-                  const firstSubcategory = subcategories[0];
-                  const styles = getCategoryStyles(category, firstSubcategory);
-                  
-                  setNewItem({
-                    ...newItem,
-                    category,
-                    subCategory: firstSubcategory,
-                    styleTag: styles[0]
-                  });
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.keys(clothingCategories).map(category => (
-                    <SelectItem key={category} value={category}>
-                      {category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {newItem.category && (
                 <Select
-                  value={newItem.subCategory}
-                  onValueChange={(value: SubcategoryValue<typeof newItem.category>) => {
-                    const styles = getCategoryStyles(newItem.category, value);
-                    // Cast to handle the type transition  
-                    setNewItem(prev => ({
-                      ...prev,
-                      subCategory: value,
-                      styleTag: styles[0]
-                    }) as NewClothingItem<typeof newItem.category>);
-                  }}
+                  value={newItem.color}
+                  onValueChange={(value) => setNewItem({...newItem, color: value})}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select subcategory" />
+                    <SelectValue placeholder="Select color" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.keys(clothingCategories[newItem.category]).map(subCategory => (
-                      <SelectItem key={subCategory} value={subCategory}>
-                        {subCategory.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                    {availableColors.map(color => (
+                      <SelectItem key={color} value={color}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-4 h-4 rounded-full" 
+                            style={{ backgroundColor: color }}
+                          />
+                          <span className="capitalize">{color}</span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              )}
-              {newItem.subCategory && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Style</p>
-                  <StyleSelect
-                    value={newItem.styleTag}
-                    onChange={(value) => setNewItem({...newItem, styleTag: value as StyleTag})}
-                    type={newItem.category}
-                    subCategory={newItem.subCategory}
-                  />
+              </div>
+              <Select
+                value={newItem.type}
+                onValueChange={(value) => setNewItem({...newItem, type: value as any})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="top">Top</SelectItem>
+                  <SelectItem value="bottom">Bottom</SelectItem>
+                  <SelectItem value="outerwear">Outerwear</SelectItem>
+                  <SelectItem value="shoes">Shoes</SelectItem>
+                  <SelectItem value="accessories">Accessories</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <p className="text-sm font-medium">Weather Tags</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      // If already has all tags, clear them, otherwise set all tags
+                      const allTags = newItem.weatherTags.length === weatherTags.length 
+                        ? []
+                        : [...weatherTags];
+                      setNewItem({...newItem, weatherTags: allTags});
+                    }}
+                  >
+                    {newItem.weatherTags.length === weatherTags.length ? 'Clear All' : 'All Weather'}
+                  </Button>
                 </div>
-              )}
+                <div className="flex gap-2">
+                  {weatherTags.map((tag) => (
+                    <Button
+                      key={tag}
+                      variant={newItem.weatherTags.includes(tag) ? "default" : "outline"}
+                      onClick={() => {
+                        const tags = newItem.weatherTags.includes(tag)
+                          ? newItem.weatherTags.filter(t => t !== tag)
+                          : [...newItem.weatherTags, tag] as WeatherTag[];
+                        setNewItem({...newItem, weatherTags: tags});
+                      }}
+                    >
+                      {tag}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Style</p>
+                <Select
+                  value={newItem.styleTag}
+                  onValueChange={(value) => setNewItem({...newItem, styleTag: value as StyleTag})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select style" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="hoodie">Hoodie</SelectItem>
+                    <SelectItem value="quarterzip">Quarter Zip</SelectItem>
+                    <SelectItem value="cargo">Cargo Pants</SelectItem>
+                    <SelectItem value="denim">Denim</SelectItem>
+                    <SelectItem value="flannel">Flannel</SelectItem>
+                    <SelectItem value="tshirt">T-Shirt</SelectItem>
+                    <SelectItem value="polo">Polo</SelectItem>
+                    <SelectItem value="dress-shirt">Dress Shirt</SelectItem>
+                    <SelectItem value="sweater">Sweater</SelectItem>
+                    <SelectItem value="blazer">Blazer</SelectItem>
+                    <SelectItem value="chino">Chinos</SelectItem>
+                    <SelectItem value="shorts">Shorts</SelectItem>
+                    <SelectItem value="sneakers">Sneakers</SelectItem>
+                    <SelectItem value="boots">Boots</SelectItem>
+                    <SelectItem value="dress-shoes">Dress Shoes</SelectItem>
+                    <SelectItem value="sandals">Sandals</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <Button onClick={addClothingItem}>Add Item</Button>
             </CardContent>
           </Card>
@@ -1482,23 +1220,14 @@ const WeatherWardrobe = () => {
 
         <TabsContent value="wardrobe" className="mt-4">
           <h2 className="text-2xl font-bold mb-4">All Clothes</h2>
-          <div className="mb-4">
-            <Input
-              placeholder="Search wardrobe..."
-              value={wardrobeSearch}
-              onChange={(e) => setWardrobeSearch(e.target.value)}
-            />
-          </div>
           {editingItem && <EditItemForm item={editingItem} />}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {filteredClothes.length === 0 ? (
+            {clothes.length === 0 ? (
               <div className="col-span-4 text-center py-8">
-                <p className="text-gray-500">
-                  {clothes.length === 0 ? "No clothes added yet. Start by adding some items!" : "No matching items found."}
-                </p>
+                <p className="text-gray-500">No clothes added yet. Start by adding some items!</p>
               </div>
             ) : (
-              filteredClothes.map(item => (
+              clothes.map(item => (
                 <Card key={item.id}>
                   <CardHeader>
                     <div className="flex items-center justify-between">

@@ -74,23 +74,25 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
     return null
   }
 
+  const styleContent = Object.entries(THEMES)
+    .map(([theme, prefix]) => `
+      ${prefix} [data-chart=${id}] {
+        ${colorConfig
+          .map(([key, itemConfig]) => {
+            const color =
+              itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
+              itemConfig.color
+            return color ? `  --color-${key}: ${color};` : null
+          })
+          .filter(Boolean)
+          .join("\n")}
+      }
+    `).join("\n")
+
   return (
     <style
       dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES).map(
-          ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color =
-      itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
-      itemConfig.color
-    return color ? `  --color-${key}: ${color};` : null
-  })
-  .join("\n")}
-}
-`
-        ),
+        __html: styleContent
       }}
     />
   )
@@ -358,4 +360,33 @@ export {
   ChartLegend,
   ChartLegendContent,
   ChartStyle,
+}
+
+interface BasicChartProps {
+  data: {
+    labels: string[];
+    values: number[];
+  };
+}
+
+export function Chart({ data }: BasicChartProps) {
+  const labelString = data.labels.join(', ');
+  
+  const chartHtml = data.labels.map((label, index) => `
+    <div>
+      <span>${label}</span>
+      <div 
+        style="width: ${data.values[index]}%"
+        class="bg-primary h-2 rounded"
+      ></div>
+    </div>
+  `).join('');
+  
+  return (
+    <div 
+      className="w-full h-full" 
+      aria-label={`Chart showing ${labelString}`}
+      dangerouslySetInnerHTML={{ __html: chartHtml }}
+    />
+  );
 }
