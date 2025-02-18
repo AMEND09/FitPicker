@@ -11,20 +11,22 @@ export default defineConfig({
         }),
         VitePWA({
             registerType: 'autoUpdate',
-            includeAssets: ['favicon.ico', 'icons/*'],
+            devOptions: {
+                enabled: true
+            },
             manifest: {
-                name: 'Fit Picker',
+                name: 'FitPicker',
                 short_name: 'FitPicker',
-                description: 'Weather-based wardrobe assistant',
-                theme_color: '#000000',
+                description: 'Weather-based wardrobe suggestions',
+                theme_color: '#ffffff',
                 icons: [
                     {
-                        src: 'icons/icon-192.png',
+                        src: 'pwa-192x192.png',
                         sizes: '192x192',
                         type: 'image/png'
                     },
                     {
-                        src: 'icons/icon-512.png',
+                        src: 'pwa-512x512.png',
                         sizes: '512x512',
                         type: 'image/png'
                     }
@@ -44,5 +46,13 @@ export default defineConfig({
     },
     optimizeDeps: {
         include: ['react', 'react-dom']
+    },
+    base: './',
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks: undefined
+            }
+        }
     }
 });
