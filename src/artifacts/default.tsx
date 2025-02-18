@@ -537,6 +537,7 @@ const WeatherWardrobe = () => {
           <Button
             onClick={() => {
               setWeather(manualWeather);
+              setManualWeatherOverride(true); // Set override when manually setting weather
               setShowWeatherDialog(false);
             }}
           >
@@ -609,8 +610,13 @@ const WeatherWardrobe = () => {
     fetchLocation();
   }, []);
 
-  // Weather fetch with proper cleanup
+  // Add state for manual weather override
+  const [manualWeatherOverride, setManualWeatherOverride] = useState<boolean>(false);
+
+  // Modify weather fetch effect to respect manual override
   useEffect(() => {
+    if (manualWeatherOverride) return; // Skip weather fetch if manually set
+
     let isMounted = true;
     const controller = new AbortController();
     let intervalId: number | undefined;
@@ -678,7 +684,7 @@ const WeatherWardrobe = () => {
         window.clearInterval(intervalId);
       }
     };
-  }, [location]);
+  }, [location, manualWeatherOverride]); // Add manualWeatherOverride to dependencies
 
   // Memoized handlers
   const handleImageUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1582,7 +1588,7 @@ const StyleSelect = ({ value, onChange, type, subCategory }: {
         <h2 className="text-2xl font-bold mb-4">Weather Status</h2>
         <Card>
           <CardContent className="flex items-center gap-4 p-4">
-            {loading ? (
+            {loading && !manualWeatherOverride ? (
               <p>Loading weather data...</p>
             ) : (
               <>
@@ -1592,9 +1598,26 @@ const StyleSelect = ({ value, onChange, type, subCategory }: {
                 <div>
                   <p className="text-lg">{weather.temp}°F</p>
                   <p className="capitalize">{weather.condition}</p>
-                  {location && <p className="text-sm text-gray-500">{location.city}</p>}
+                  {location && !manualWeatherOverride && (
+                    <p className="text-sm text-gray-500">{location.city}</p>
+                  )}
+                  {manualWeatherOverride && (
+                    <p className="text-sm text-blue-500">Manually Set</p>
+                  )}
                 </div>
-                <div className="flex items-center ml-auto">
+                <div className="flex items-center gap-2 ml-auto">
+                  {manualWeatherOverride && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setManualWeatherOverride(false);
+                        setShowWeatherDialog(false);
+                      }}
+                    >
+                      Reset to Auto
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"
