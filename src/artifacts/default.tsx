@@ -387,50 +387,54 @@ const WeatherWardrobe = () => {
 
   useEffect(() => {
     const fetchLocation = async () => {
-      // First try browser geolocation
-      if ('geolocation' in navigator) {
-        try {
+      try {
+        // Try browser geolocation first
+        if ('geolocation' in navigator) {
           const position = await new Promise<GeolocationPosition>((resolve, reject) => {
             navigator.geolocation.getCurrentPosition(resolve, reject, {
-              enableHighAccuracy: false,
-              timeout: 10000,
-              maximumAge: 300000
+              enableHighAccuracy: true,
+              timeout: 5000,
+              maximumAge: 0,
             });
           });
 
           setLocation({
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
-            city: 'Your Location'
+            city: 'Current Location'
           });
           return;
-        } catch (error) {
-          console.log('Geolocation failed, falling back to IP lookup');
         }
+      } catch (error) {
+        console.log('Geolocation failed:', error);
       }
 
-      // Fallback to IP-based location using ip-api.com
+      // Fallback to IP-based location using geoplugin
       try {
-        const response = await fetch('http://ip-api.com/json/?fields=lat,lon,city,status');
+        const response = await fetch('http://www.geoplugin.net/json.gp');
+        if (!response.ok) {
+          throw new Error('Failed to fetch location data');
+        }
         const data = await response.json();
         
-        if (data.status === 'success') {
+        if (data.geoplugin_latitude && data.geoplugin_longitude) {
           setLocation({
-            latitude: data.lat,
-            longitude: data.lon,
-            city: data.city || 'Unknown Location'
+            latitude: parseFloat(data.geoplugin_latitude),
+            longitude: parseFloat(data.geoplugin_longitude),
+            city: data.geoplugin_city || 'Unknown Location'
           });
           return;
         }
-        throw new Error('IP lookup failed');
+        throw new Error('Invalid location data');
       } catch (error) {
-        console.error('Location fetch failed:', error);
-        // Set a generic fallback location if both methods fail
-        setLocation({
+        console.error('IP location failed:', error);
+        // Use New York as default location
+        const defaultLocation = {
           latitude: 40.7128,
           longitude: -74.0060,
           city: 'New York (Default)'
-        });
+        };
+        setLocation(defaultLocation);
       }
     };
 
@@ -1175,6 +1179,39 @@ const WeatherWardrobe = () => {
               />
             </div>
           )}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <p className="text-sm font-medium">Weather Tags</p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const allTags = editForm.weatherTags.length === weatherTags.length 
+                    ? []
+                    : [...weatherTags];
+                  setEditForm({...editForm, weatherTags: allTags});
+                }}
+              >
+                {editForm.weatherTags.length === weatherTags.length ? 'Clear All' : 'All Weather'}
+              </Button>
+            </div>
+            <div className="flex gap-2">
+              {weatherTags.map((tag) => (
+                <Button
+                  key={tag}
+                  variant={editForm.weatherTags.includes(tag) ? "default" : "outline"}
+                  onClick={() => {
+                    const tags = editForm.weatherTags.includes(tag)
+                      ? editForm.weatherTags.filter(t => t !== tag)
+                      : [...editForm.weatherTags, tag];
+                    setEditForm({...editForm, weatherTags: tags});
+                  }}
+                >
+                  {tag}
+                </Button>
+              ))}
+            </div>
+          </div>
           <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={cancelEditing}>Cancel</Button>
             <Button onClick={() => updateClothingItem(editForm)}>Save Changes</Button>
@@ -1508,6 +1545,39 @@ const StyleSelect = ({ value, onChange, type, subCategory }: {
                   />
                 </div>
               )}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <p className="text-sm font-medium">Weather Tags</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const allTags = newItem.weatherTags.length === weatherTags.length 
+                        ? []
+                        : [...weatherTags];
+                      setNewItem({...newItem, weatherTags: allTags});
+                    }}
+                  >
+                    {newItem.weatherTags.length === weatherTags.length ? 'Clear All' : 'All Weather'}
+                  </Button>
+                </div>
+                <div className="flex gap-2">
+                  {weatherTags.map((tag) => (
+                    <Button
+                      key={tag}
+                      variant={newItem.weatherTags.includes(tag) ? "default" : "outline"}
+                      onClick={() => {
+                        const tags = newItem.weatherTags.includes(tag)
+                          ? newItem.weatherTags.filter(t => t !== tag)
+                          : [...newItem.weatherTags, tag];
+                        setNewItem({...newItem, weatherTags: tags});
+                      }}
+                    >
+                      {tag}
+                    </Button>
+                  ))}
+                </div>
+              </div>
               <Button onClick={addClothingItem}>Add Item</Button>
             </CardContent>
           </Card>
