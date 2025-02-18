@@ -254,7 +254,7 @@ type NewClothingItem<T extends ClothingCategory> = {
   subCategory: ClothingSubCategory[T];
 }
 
-const WeatherWardrobe = () => {
+export default function WeatherWardrobe() {
   // Remove duplicate newItem state declaration and keep only this one
   const [newItem, setNewItem] = useState<NewClothingItem<ClothingCategory>>({
     name: '',
@@ -546,6 +546,7 @@ const WeatherWardrobe = () => {
             onClick={() => {
               setWeather(manualWeather);
               setManualWeatherOverride(true); // Set override when manually setting weather
+              setShouldRegenerateSuggestions(true); // Add this line
               setShowWeatherDialog(false);
             }}
           >
@@ -623,7 +624,10 @@ const WeatherWardrobe = () => {
 
   // Modify weather fetch effect to respect manual override
   useEffect(() => {
-    if (manualWeatherOverride) return; // Skip weather fetch if manually set
+    if (manualWeatherOverride) {
+      setShouldRegenerateSuggestions(true);
+      return; // Skip weather fetch if manually set
+    }
 
     let isMounted = true;
     const controller = new AbortController();
@@ -980,17 +984,20 @@ const WeatherWardrobe = () => {
 
   // Update suggestions logic to handle initial render without self-reference
   const suggestions = React.useMemo(() => {
+    if (!weather || !clothes.length) return [];
+    
     if (shouldRegenerateSuggestions) {
       const newSuggestions = memoizedGetWeatherSuggestions();
       if (newSuggestions.length > 0) {
         setCurrentSuggestions(newSuggestions);
         setShouldRegenerateSuggestions(false);
+        // Update history with new suggestions
+        updateHistory(newSuggestions);
       }
       return newSuggestions;
     }
-    // Return current suggestions if we're not regenerating
     return currentSuggestions;
-  }, [memoizedGetWeatherSuggestions, shouldRegenerateSuggestions, currentSuggestions]);
+  }, [memoizedGetWeatherSuggestions, shouldRegenerateSuggestions, weather, clothes.length, currentSuggestions]);
 
   // Split the suggestions tab render into a separate component
   const SuggestionsContent = React.memo(() => {
@@ -1925,5 +1932,3 @@ const SuggestionsItem = ({ item }: { item: ClothingItem }) => (
     </div>
   );
 };
-
-export default WeatherWardrobe;
