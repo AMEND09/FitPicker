@@ -567,8 +567,16 @@ export default function WeatherWardrobe() {
     const fetchLocation = async () => {
       if (locationFetchFailed) return;
 
+      const handleLocationError = (error: any) => {
+        console.error('Location error:', error);
+        setLocationFetchFailed(true);
+        // Show manual weather input if location fails
+        setShowWeatherDialog(true);
+      };
+
+      // Try IP-based location first
       try {
-        const response = await fetch('http://ip-api.com/json/');
+        const response = await fetch('https://ip-api.com/json/');
         if (!response.ok) throw new Error('Failed to fetch location data');
         
         const data = await response.json();
@@ -583,41 +591,37 @@ export default function WeatherWardrobe() {
         throw new Error('Invalid location data');
       } catch (error) {
         console.error('IP location failed:', error);
-        // Only try geolocation as fallback if IP API fails
-        try {
-          if ('geolocation' in navigator) {
-            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-              const geoOptions = {
-                enableHighAccuracy: true,
-                timeout: isMobileBrowser() ? 20000 : 5000,
-                maximumAge: 0,
-              };
-
-              if (isMobileBrowser()) {
-                alert("Please allow location access to get weather-appropriate outfit suggestions.");
-              }
-
-              navigator.geolocation.getCurrentPosition(resolve, reject, geoOptions);
-            });
-
-            setLocation({
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-              city: 'Current Location'
-            });
-            return;
-          }
-        } catch (geoError) {
-          console.log('Geolocation fallback failed:', geoError);
-        }
         
-        setLocationFetchFailed(true);
-        setShowWeatherDialog(true);
+        // If IP location fails, try browser geolocation
+        if ('geolocation' in navigator) {
+          // Show prompt for Safari users
+          if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) {
+            alert("Please allow location access when prompted to get weather-appropriate outfit suggestions. You can manually set the weather if you prefer not to share your location.");
+          }
+
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              setLocation({
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                city: 'Current Location'
+              });
+            },
+            handleLocationError,
+            {
+              enableHighAccuracy: true,
+              timeout: 20000, // Increase timeout for Safari
+              maximumAge: 0
+            }
+          );
+        } else {
+          handleLocationError(new Error('Geolocation not supported'));
+        }
       }
     };
 
     fetchLocation();
-  }, []);
+  }, [locationFetchFailed]);
 
   // Add state for manual weather override
   const [manualWeatherOverride, setManualWeatherOverride] = useState<boolean>(false);
