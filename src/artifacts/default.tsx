@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { Icon } from 'lucide-react';
 import { trousers } from '@lucide/lab';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 type ClothingCategory =
   | 'tops'
@@ -385,56 +386,223 @@ const WeatherWardrobe = () => {
     }
   };
 
+  const [showLocationDialog, setShowLocationDialog] = useState(false);
+  const [manualLocation, setManualLocation] = useState({
+    city: '',
+    latitude: '',
+    longitude: ''
+  });
+
+  // Add helper function for input validation
+  const isValidCoordinate = (value: string) => {
+    const num = parseFloat(value);
+    return !isNaN(num) && Math.abs(num) <= 180;
+  };
+
+  // Add manual location dialog component
+  const LocationDialog = () => (
+    <Dialog open={showLocationDialog} onOpenChange={setShowLocationDialog}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Enter Location Manually</DialogTitle>
+          <DialogDescription>
+            Please enter your city name and coordinates
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <label htmlFor="city" className="text-right">City</label>
+            <Input
+              id="city"
+              value={manualLocation.city}
+              onChange={(e) => setManualLocation(prev => ({...prev, city: e.target.value}))}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <label htmlFor="latitude" className="text-right">Latitude</label>
+            <Input
+              id="latitude"
+              value={manualLocation.latitude}
+              onChange={(e) => setManualLocation(prev => ({...prev, latitude: e.target.value}))}
+              placeholder="-90 to 90"
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <label htmlFor="longitude" className="text-right">Longitude</label>
+            <Input
+              id="longitude"
+              value={manualLocation.longitude}
+              onChange={(e) => setManualLocation(prev => ({...prev, longitude: e.target.value}))}
+              placeholder="-180 to 180"
+              className="col-span-3"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setShowLocationDialog(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              if (!manualLocation.city ||
+                  !isValidCoordinate(manualLocation.latitude) ||
+                  !isValidCoordinate(manualLocation.longitude)) {
+                alert('Please enter valid location information');
+                return;
+              }
+              
+              setLocation({
+                city: manualLocation.city,
+                latitude: parseFloat(manualLocation.latitude),
+                longitude: parseFloat(manualLocation.longitude)
+              });
+              setShowLocationDialog(false);
+            }}
+          >
+            Save Location
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
+  const [locationFetchFailed, setLocationFetchFailed] = useState(false);
+  const [isManualLocationOpen, setIsManualLocationOpen] = useState(false);
+
+  const [showWeatherDialog, setShowWeatherDialog] = useState(false);
+  const [manualWeather, setManualWeather] = useState({
+    temp: 70,
+    condition: 'clear'
+  });
+
+  // Add the WeatherDialog component
+  const WeatherDialog = () => (
+    <Dialog open={showWeatherDialog} onOpenChange={setShowWeatherDialog}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>How's the weather?</DialogTitle>
+          <DialogDescription>
+            Select the current weather conditions
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Temperature</p>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: 'Cold', desc: 'Below 60°F', temp: 55, icon: <Cloud className="h-4 w-4" /> },
+                { label: 'Mild', desc: '60-75°F', temp: 70, icon: <Sun className="h-4 w-4" /> },
+                { label: 'Hot', desc: 'Above 75°F', temp: 85, icon: <Sun className="h-4 w-4 text-orange-500" /> }
+              ].map((option) => (
+                <Button
+                  key={option.temp}
+                  variant={manualWeather.temp === option.temp ? "default" : "outline"}
+                  onClick={() => setManualWeather(prev => ({ ...prev, temp: option.temp }))}
+                  className="flex flex-col items-center gap-1 h-auto py-4"
+                >
+                  {option.icon}
+                  <span>{option.label}</span>
+                  <span className="text-xs text-muted-foreground">{option.desc}</span>
+                </Button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Conditions</p>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: 'Clear', value: 'clear', icon: <Sun className="h-4 w-4" /> },
+                { label: 'Cloudy', value: 'cloudy', icon: <Cloud className="h-4 w-4" /> },
+                { label: 'Rainy', value: 'rainy', icon: <CloudRain className="h-4 w-4" /> }
+              ].map((option) => (
+                <Button
+                  key={option.value}
+                  variant={manualWeather.condition === option.value ? "default" : "outline"}
+                  onClick={() => setManualWeather(prev => ({ ...prev, condition: option.value }))}
+                  className="flex flex-col items-center gap-1 h-auto py-4"
+                >
+                  {option.icon}
+                  <span>{option.label}</span>
+                </Button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button
+            onClick={() => {
+              setWeather(manualWeather);
+              setShowWeatherDialog(false);
+            }}
+          >
+            Save Weather
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
+  // Add this helper near other utility functions
+  const isMobileBrowser = () => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  };
+
+  // Update the fetchLocation function inside useEffect
   useEffect(() => {
     const fetchLocation = async () => {
-      try {
-        // Try browser geolocation first
-        if ('geolocation' in navigator) {
-          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-              enableHighAccuracy: true,
-              timeout: 5000,
-              maximumAge: 0,
-            });
-          });
+      if (locationFetchFailed) return;
 
-          setLocation({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            city: 'Current Location'
-          });
-          return;
-        }
-      } catch (error) {
-        console.log('Geolocation failed:', error);
-      }
-
-      // Fallback to IP-based location using geoplugin
       try {
-        const response = await fetch('http://www.geoplugin.net/json.gp');
-        if (!response.ok) {
-          throw new Error('Failed to fetch location data');
-        }
-        const data = await response.json();
+        const response = await fetch('http://ip-api.com/json/');
+        if (!response.ok) throw new Error('Failed to fetch location data');
         
-        if (data.geoplugin_latitude && data.geoplugin_longitude) {
+        const data = await response.json();
+        if (data.status === 'success') {
           setLocation({
-            latitude: parseFloat(data.geoplugin_latitude),
-            longitude: parseFloat(data.geoplugin_longitude),
-            city: data.geoplugin_city || 'Unknown Location'
+            latitude: data.lat,
+            longitude: data.lon,
+            city: data.city || 'Unknown Location'
           });
           return;
         }
         throw new Error('Invalid location data');
       } catch (error) {
         console.error('IP location failed:', error);
-        // Use New York as default location
-        const defaultLocation = {
-          latitude: 40.7128,
-          longitude: -74.0060,
-          city: 'New York (Default)'
-        };
-        setLocation(defaultLocation);
+        // Only try geolocation as fallback if IP API fails
+        try {
+          if ('geolocation' in navigator) {
+            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+              const geoOptions = {
+                enableHighAccuracy: true,
+                timeout: isMobileBrowser() ? 20000 : 5000,
+                maximumAge: 0,
+              };
+
+              if (isMobileBrowser()) {
+                alert("Please allow location access to get weather-appropriate outfit suggestions.");
+              }
+
+              navigator.geolocation.getCurrentPosition(resolve, reject, geoOptions);
+            });
+
+            setLocation({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              city: 'Current Location'
+            });
+            return;
+          }
+        } catch (geoError) {
+          console.log('Geolocation fallback failed:', geoError);
+        }
+        
+        setLocationFetchFailed(true);
+        setShowWeatherDialog(true);
       }
     };
 
@@ -1426,6 +1594,15 @@ const StyleSelect = ({ value, onChange, type, subCategory }: {
                   <p className="capitalize">{weather.condition}</p>
                   {location && <p className="text-sm text-gray-500">{location.city}</p>}
                 </div>
+                <div className="flex items-center ml-auto">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowWeatherDialog(true)}
+                  >
+                    Set Weather
+                  </Button>
+                </div>
               </>
             )}
           </CardContent>
@@ -1679,6 +1856,8 @@ const StyleSelect = ({ value, onChange, type, subCategory }: {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <LocationDialog />
+      <WeatherDialog />
     </div>
   );
 };
