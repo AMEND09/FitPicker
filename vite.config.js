@@ -1,17 +1,16 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  base: '/FitPicker/',  // Updated to match the correct repo/directory name
+  base: 'https://amend09.github.io/',  // Use absolute URL for GitHub Pages
   build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
     rollupOptions: {
       output: {
-        assetFileNames: (assetInfo) => {
-          const info = assetInfo.name.split('.')
-          const ext = info[info.length - 1]
-          return `assets/${info[0]}.[hash].${ext}`
-        },
-        chunkFileNames: 'assets/[name].[hash].js',
-        entryFileNames: 'assets/[name].[hash].js'
+        assetFileNames: 'assets/[name][extname]',
+        chunkFileNames: 'assets/[name].js',
+        entryFileNames: 'assets/[name].js',
+        manualChunks: undefined
       }
     }
   }
